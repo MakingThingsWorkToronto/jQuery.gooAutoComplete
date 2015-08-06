@@ -1,0 +1,119 @@
+<html>
+<head>
+    <title>Test jQuery.gooAutoComplete.js</title>
+    <link rel="stylesheet" type="text/css" href="jQuery.gooAutoComplete.TestCustomTemplate.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="jQuery.gooAutoComplete.js"></script>
+    <style type="text/css">
+        .test-box {
+            margin-bottom: 2rem;
+            border-bottom: 1px dotted #ddd;
+            padding: 2rem;
+        }
+    </style>
+    <script>
+        $(function () {
+            var addScript = "<link rel='stylesheet' type='text/css' href='{0}' />\n".replace("{0}", $("link").attr("href")) +
+                "<script src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js'><" + "/script>\n" +
+                "<script src='jQuery.gooAutoComplete.js'><" + "/script>\n";
+
+            $("input[type='text']").each(function () {
+                var ss = $("<pre />");
+                ss.text(
+                    addScript +
+                    "\n<script type='text/javascript'>" +
+                    $("#" + this.id + "Script").html() +
+                    "\n<" + "/script>"
+                    );
+                $(this).parent().after(ss);
+            });
+        });
+    </script>
+</head>
+<body>
+
+    <div class="test-box">
+        <h1>Test Custom Item Template</h1>
+        <div class="ac-wrap">
+            <input type="text" id="testCustomTemplate" placeholder="Custom Item Template..." />
+        </div>
+
+        <p>Download <a href="jQuery.gooAutoComplete.TestCustomTemplate.css">CSS.</a></p>
+        <script id="testCustomTemplateScript" type="text/javascript">
+
+            /* SAMPLE CODE: */
+
+            $(function () {
+
+                // Create a dummy matrix for example
+                var list1 = [{ title: "Item One Two", slug: "#one", description: "Donec sit amet tincidunt augue. Donec vel maximus ante. Integer cursus dolor orci, at rutrum ipsum scelerisque at. Vestibulum et mauris massa. Proin mollis est urna, et pulvinar lacus tincidunt eget." },
+                             { title: "Item Two One Two Three", slug: "#two", description: "In sodales turpis et ipsum dictum ornare. In condimentum, lacus eget egestas malesuada, turpis libero dignissim felis, eu ultrices neque tortor sed lacus. " },
+                             { title: "Item Three Three", slug: "#three", description: "Nunc vitae ex vitae sapien condimentum euismod. Nulla facilisi. Nam nulla massa, laoreet sed orci sit amet, lacinia ornare nunc." }],
+                    list2 = [{ title: "Item One Two", slug: "#one", description: "Donec vitae quam nec ante congue lobortis. Quisque massa nibh, laoreet id risus a, blandit lacinia dui." },
+                             { title: "Item Two One", slug: "#two", description: "Aliquam dignissim convallis justo quis egestas. Curabitur viverra purus augue, non commodo ligula lacinia a. Nunc ac velit pulvinar justo ultrices rhoncus. Nam in placerat sem." },
+                             { title: "Item Three One", slug: "#three", description: "Nam venenatis faucibus nibh, ut pharetra turpis pretium ac. Praesent ornare turpis ut ex luctus tincidunt. Nullam faucibus, risus vitae gravida iaculis, orci augue posuere nisl, a facilisis dui risus a turpis." }],
+                    list3 = [{ title: "Item One Three", slug: "#one", description: "Suspendisse quis tempor elit, vitae iaculis ex. Morbi et posuere felis, sit amet vestibulum mi. Donec tempus vel risus ac iaculis. Nullam varius turpis mi, sit amet mattis turpis lobortis in. Nullam imperdiet pellentesque mollis. " },
+                             { title: "Item Two Three", slug: "#two", description: "Fusce nec ultricies erat. Maecenas auctor fermentum pharetra. Nulla sed facilisis orci. Sed quis velit ut sem posuere dapibus id in dui. Vestibulum vestibulum libero mi, quis euismod ipsum dictum a. " },
+                             { title: "Item Three Two", slug: "#three", description: "Maecenas feugiat lectus a sem auctor, eget tincidunt odio pellentesque. Integer vehicula non dui vitae semper. Cras dolor turpis, porttitor id lectus ac, suscipit aliquam diam. " }],
+                    lists = [list1, list2, list3];
+
+                // Give the list a title if we want to use in template
+                list1.Title = "List One Title";
+                list2.Title = "List Two Title";
+                list3.Title = "List Three Title";
+
+                // Most basic configuration: Single List
+                $("#testCustomTemplate").gooAutoComplete({
+                    selectedTemplate: "", // we're using single select so empty the selected item template.
+                    listItemTemplate: "<li class='ac-item'><a href='/{slug}' title='{title}'>{highlight:title}</a><p>{highlight:description}</p></li>",
+                    altListItemTemplate: "<li class='ac-item ac-item-alt'><a href='/{slug}' title='{title}'>{highlight:title}</a><p>{highlight:description}</p></li>",
+                    getData: function (text, callback, ac) {
+
+                        // text: the search text in the auto complete.
+                        // callback: the async on complete callback, requires an array of arrays.
+                        // ac: reference to the auto complete plugin object.
+
+                        // fake async call
+                        window.setTimeout(function () {
+
+                            callback(lists);
+
+                        }, 2000);
+
+                    },
+                    go: function (dataItem, ac) {
+
+                        // dataItem: the row of data used to create the selected auto complete item.
+                        // ac: reference to the auto complete plugin object.
+
+                        var u = window.location.href,
+                            p = u.split("#")[0];
+
+                        if (typeof (dataItem) == "object") {
+                            // the user selected an item in the list
+                            window.location.href = p + dataItem.slug;
+                            alert("Go: " + dataItem.slug);
+
+                        } else if (typeof (dataItem) == "string") {
+                            // the user wants to use text entered.
+                            window.location.href = p + "#" + dataItem;
+                            alert("Go: " + dataItem);
+
+                        }
+
+                    },
+                    filter: function (dataItem, text) {
+                        // dataItem: the row level data item for comparison
+                        // text: the current auto complete text entered by the user
+                        // @returns Boolean, true to include item, false to omit item.
+                        return (dataItem.title.toLowerCase().indexOf(text.toLowerCase()) > -1) || (dataItem.description ? dataItem.description.toLowerCase().indexOf(text.toLowerCase()) > -1 : false);
+                    }
+                });
+
+            });
+
+        </script>
+    </div>
+
+</body>
+</html>

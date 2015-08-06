@@ -1,0 +1,37 @@
+﻿
+.ac-wrap { border: 1px dotted #ddd; padding: 0; vertical-align: middle; display: inline-block; }
+.ac-wrap input[type='text'] { width: 20rem; padding: 0.5rem; margin: 0;  vertical-align: middle; border: none; }
+
+.ac  { background: rgba(255,255,255,0.95); position: absolute; margin: 0.25rem 0 0 -1px; list-style-type: none; display: none; z-index: 2000; width: 80%; padding: 0.25rem; border: 1px dotted #ddd; box-sizing: border-box; }
+
+.ac > li { padding: 0; margin: 0; }
+
+.ac h2 { margin: 0; padding: 0.5rem 0 0.5rem 0; }
+
+.ac-sel { background: #f0f0f0; }
+
+.ac-item { padding: 0.5rem; }
+
+.ac ul.ac-list { list-style: none; margin: 0; padding: 0; float: left; width: 30%; border-right: 1px dotted #ddd; box-sizing: border-box; margin-right: 2%; }
+
+.ac ul.ac-list > li { margin: 0; padding: 0.5rem;}
+
+ul.ac > li.ac-no-results { margin: 0 auto; max-width: 90rem; width: 100%; font-size: 1.25rem; padding: 0.5rem; }
+
+ul.ac > li.ac-row.row { padding: 0; margin: 0; }
+
+ul.ac ul.ac-list .ac-item a { color: #000; font-size: 1.25rem; }
+
+ul.ac ul.ac-list .ac-item a .ac-sel-text { font-weight: 700; color: #A30046; text-transform: uppercase; }
+
+.ac-button { vertical-align: middle; display: inline-block; background: url(search.png) center center no-repeat; height: 24px; width: 24px; cursor: pointer; padding: 0.5rem; }
+
+.ac-button-hover { background: #ccc url(search.png) center center no-repeat; color: #000; }
+
+.ac .ac-load { font-style: italic; margin: 0px 5px 0px 5px; background: #fff url(load.gif) no-repeat 8px; padding: 0.5rem; padding-left: 3rem; font-size: 1.25rem; }
+
+.ac-help { border: 1px dotted #ddd; background: rgba(255,255,255,0.95); line-height: 1.3em; position: absolute; width: 25rem; font-size: 1.25rem; padding-top: 5px; z-index: 2000; margin-top: 5px; }
+
+.ac-help ul { list-style: none; margin: 0px; padding: 5px; }
+
+.ac-help ul li { margin: 0; padding: 0 5px 5px 5px; }

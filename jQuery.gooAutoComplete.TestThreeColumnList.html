@@ -1,0 +1,111 @@
+<html>
+<head>
+    <title>Test jQuery.gooAutoComplete.js</title>
+    <link rel="stylesheet" type="text/css" href="jQuery.gooAutoComplete.TestThreeColumnList.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="jQuery.gooAutoComplete.js"></script>
+    <style type="text/css">
+        .test-box {
+            margin-bottom: 2rem;
+            border-bottom: 1px dotted #ddd;
+            padding: 2rem;
+        }
+    </style>
+    <script>
+        $(function () {
+            var addScript = "<link rel='stylesheet' type='text/css' href='{0}' />\n".replace("{0}", $("link").attr("href")) +
+                "<script src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js'><" + "/script>\n" +
+                "<script src='jQuery.gooAutoComplete.js'><" + "/script>\n";
+
+            $("input[type='text']").each(function () {
+                var ss = $("<pre />");
+                ss.text(
+                    addScript +
+                    "\n<script type='text/javascript'>" +
+                    $("#" + this.id + "Script").html() +
+                    "\n<" + "/script>"
+                    );
+                $(this).parent().after(ss);
+            });
+        });
+    </script>
+</head>
+<body>
+
+    <div class="test-box">
+        <h1>Test Three Column List</h1>
+        <div class="ac-wrap">
+            <input type="text" id="testTrippleList" placeholder="Three Column List Autocomplete..." />
+        </div>
+
+        <p>Download <a href="jQuery.gooAutoComplete.TestThreeColumnList.css">CSS.</a></p>
+        <script id="testTrippleListScript" type="text/javascript">
+
+            /* SAMPLE CODE: */
+
+            $(function () {
+
+                // Create a dummy matrix for example
+                var list1 = [{ title: "Item One Two", slug: "#one" },
+                             { title: "Item Two One Two Three", slug: "#two" },
+                             { title: "Item Three Three", slug: "#three" }],
+                    list2 = [{ title: "Item One Two", slug: "#one" },
+                             { title: "Item Two One", slug: "#two" },
+                             { title: "Item Three One", slug: "#three" }],
+                    list3 = [{ title: "Item One Three", slug: "#one" },
+                             { title: "Item Two Three", slug: "#two" },
+                             { title: "Item Three Two", slug: "#three" }],
+                    lists = [list1, list2, list3];
+
+                // Give the list a title if we want to use in template
+                list1.Title = "List One Title";
+                list2.Title = "List Two Title";
+                list3.Title = "List Three Title";
+
+                // Most basic configuration: Single List
+                $("#testTrippleList").gooAutoComplete({
+                    selectedTemplate: "", // we're using single select so empty the selected item template.
+                    getData: function (text, callback, ac) {
+
+                        // text: the search text in the auto complete.
+                        // callback: the async on complete callback, requires an array of arrays.
+                        // ac: reference to the auto complete plugin object.
+
+                        // fake async call
+                        window.setTimeout(function () {
+
+                            callback(lists);
+
+                        }, 2000);
+
+                    },
+                    go: function (dataItem, ac) {
+
+                        // dataItem: the row of data used to create the selected auto complete item.
+                        // ac: reference to the auto complete plugin object.
+
+                        var u = window.location.href,
+                            p = u.split("#")[0];
+
+                        if (typeof (dataItem) == "object") {
+                            // the user selected an item in the list
+                            window.location.href = p + dataItem.slug;
+                            alert("Go: " + dataItem.slug);
+
+                        } else if (typeof (dataItem) == "string") {
+                            // the user wants to use text entered.
+                            window.location.href = p + "#" + dataItem;
+                            alert("Go: " + dataItem);
+
+                        }
+
+                    }
+                });
+
+            });
+
+        </script>
+    </div>
+
+</body>
+</html>
