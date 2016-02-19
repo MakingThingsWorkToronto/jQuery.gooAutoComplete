@@ -9,7 +9,8 @@
             dopts = $.extend($.fn.gooAutoComplete.defaults, opts);
 
         function GetTemplateMethod(template) {
-            var method = "(function(){ return function(template, data, highlight) {\n",
+            if (!template || template == "") return function () { };
+            var method = "(function(){ return function(template, data, highlight, subList) {\n",
                 matches = template.match(/{([^}]*)}/g);
             if (matches) {
                 for (var match = 0; match < matches.length; match++) {
@@ -17,6 +18,12 @@
                     if (txt.indexOf("highlight:") > -1) {
                         var part = txt.substr(11, txt.length - 12);
                         method += "template = template.replace('" + txt + "', highlight(data." + part + "));\n";
+                    } else if (txt.indexOf("sub:") > -1) {
+                        var key = txt.substr(5, txt.length - 6),
+                            parts = key.split(",");
+                        method += "template = template.replace('" + txt + "', subList('" + parts[0] + "', data." + parts[1] + "));\n";
+                    } else if (txt == "{.}") {
+                        method += "template = template.replace('" + txt + "', data);\n";
                     } else {
                         method += "template = template.replace('" + txt + "', data." + txt.substr(1, txt.length - 2) + ");\n";
                     }
@@ -232,6 +239,11 @@
                             })
                             .fadeo();
                     },
+                    RefreshData : function(e) {
+                        ac.TextChanged({
+                            which : 0
+                        });
+                    }, 
                     TextChanged: function (e) {
 
                         if (e.which == 13 || (e.which >= 37 && e.which <= 40)) return;
@@ -347,6 +359,18 @@
                         ac.Cache[prefix] = lists;
                         ac.ShowLists(lists);
                     },
+                    DynamicTemplate : function(templateId, enumerable) {
+                        var tmpl = $(document.getElementById(templateId)).html(),
+                            meth = tmpl ? GetTemplateMethod(tmpl) : "",
+                            retVal = "";
+                        $.each(enumerable, function(idx, val){
+                            retVal += meth(tmpl, val, ac.Highlighter, ac.DynamicTemplate);
+                        });
+                        return retVal;
+                    },
+                    Highlighter : function(tmpl){
+                        return ac.HighlightText(text, tmpl);
+                    },
                     ShowLists: function (lists) {
 
                         var popid = ac.Input.attr("id") + "_ac",
@@ -363,19 +387,29 @@
 
                         for (var list = 0; list < lists.length; list++) {
 
-                            var curAc = $(ac.Options.List(ac.Options.listTemplate, lists[list], function (txt) { return txt; })).css({ opacity: 0.01 });
+                            var tList = lists[list],
+                                tmpl = {
+                                    List: tList.listTemplate ? GetTemplateMethod(tList.listTemplate) : ac.Options.List,
+                                    Item: tList.listItemTemplate ? GetTemplateMethod(tList.listItemTemplate) : ac.Options.ListItem,
+                                    AltItem: tList.altListItemTemplate ? GetTemplateMethod(tList.altListItemTemplate) : ac.Options.AltListItem,
+                                    ListTemplate: tList.listTemplate || ac.Options.listTemplate,
+                                    ItemTemplate: tList.listItemTemplate || ac.Options.listItemTemplate,
+                                    AltItemTemplate: tList.altListItemTemplate || ac.Options.altListItemTemplate
+                                },
+                                curAc = $(tmpl.List(tmpl.ListTemplate, lists[list], function (txt) { return txt; }, ac.DynamicTemplate))
+                                            .css({ opacity: 0.01 });
 
                             added = false;
 
                             for (var listItem = 0; listItem < lists[list].length; listItem++) {
 
-                                if (ac.Options.filter(lists[list][listItem], text)) {
+                                if (ac.Options.filter(lists[list][listItem], text, lists[list])) {
                                     if (addCnt == ac.Options.maxItems) break;
                                     addCnt++;
                                     added = true;
                                     var addItem = alt
-                                                    ? $(ac.Options.AltListItem(ac.Options.altListItemTemplate, lists[list][listItem], function (tmpl) { return ac.HighlightText(text, tmpl); }))
-                                                    : $(ac.Options.ListItem(ac.Options.listItemTemplate, lists[list][listItem], function (tmpl) { return ac.HighlightText(text, tmpl); }));
+                                                    ? $(tmpl.AltItem(tmpl.AltItemTemplate, lists[list][listItem], ac.Highlighter, ac.DynamicTemplate))
+                                                    : $(tmpl.Item(tmpl.ItemTemplate, lists[list][listItem], ac.Highlighter, ac.DynamicTemplate));
                                     addItem
                                         .appendTo(curAc)
                                         .data(DATA_ITEM_KEY, lists[list][listItem])
@@ -390,7 +424,7 @@
                                 }
                             }
                             addCnt = 0;
-                            if (added) {
+                            if (added || tList.alwaysAdd == true) {
                                 hasRes = true;
                                 if (curAc.appendTo(acRow).animate({ opacity: 1 }).outerWidth() > ac.Options.maxColumnWidth) {
                                     curAc.css({ width: ac.Options.maxColumnWidth + "px" });
@@ -454,6 +488,17 @@
                     });
                 }
 
+                ac.Input.focusin(function () {
+                    $("body").removeClass("ac-not-searching").addClass("ac-searching");
+                    $(this).removeClass("ac-not-focused").addClass("ac-focused");
+                }).focusout(function () {
+                    $("body").removeClass("ac-searching").addClass("ac-not-searching");
+                    $(this).removeClass("ac-focused").addClass("ac-not-focused");                    
+                });
+
+                $("body").removeClass("ac-searching").addClass("ac-not-searching");
+                $(this).removeClass("ac-focused").addClass("ac-not-focused");
+
             }
 
             ac.SearchConfig = dopts.searchConfig;
@@ -463,6 +508,139 @@
         });
     }
 
+    window.gooAutoCompleteInitElement = function (element, defaultOpts, cancelInit) {
+
+        var opts = defaultOpts || {},
+            t = $(element),
+            is = checkType,
+            val = null;
+
+        val = t.attr("ac-maxitems");
+        if (is.nbr(val)) opts.maxItems = val * 1;
+
+        val = t.attr("ac-exitonclick");
+        if (is.nbr(val)) opts.exitOnClick = (val == "true");
+
+        val = t.attr("ac-helptimeout");
+        if (is.bool(val)) opts.helpTimeout = val * 1;
+
+        val = t.attr("ac-minchars");
+        if (is.bool(val)) opts.minChars = val * 1;
+
+        val = t.attr("ac-usecache");
+        if (is.bool(val)) opts.useCache = (val == "true");
+
+        val = t.attr("ac-position")
+        if (is.str(val)) opts.position = val;
+
+        val = t.attr("ac-multiselectinput");
+        if(is.bool(val)) opts.multiSelectInput = (val == "true");
+
+        val = t.attr("ac-multiselect");
+        if(is.bool(val)) opts.multiSelect = (val == "true");
+
+        val = t.attr("ac-maxcolumnwidth");
+        if(is.nbr(val)) opts.maxColumnWidth = val * 1;
+
+        val = t.attr("ac-showbutton");
+        if(is.bool(val)) opts.showButton = (val == "true");
+        
+        val = t.attr("ac-showhelp");
+        if(is.bool(val)) opts.showHelp = (val == "true");
+        
+        val = t.attr("ac-showselected");
+        if(is.bool(val)) opts.showSelected == (val == "true");
+
+        val = t.attr("ac-afterrender");
+        if(is.str(val) && is.func(window[val])) opts.afterRender = window[val];
+
+        val = t.attr("ac-beforerender");
+        if(is.str(val) && is.func(window[val])) opts.beforeRender = window[val];
+
+        val = t.attr("ac-filter");
+        if(is.str(val) && is.func(window[val])) opts.filter = window[val];
+
+        val = t.attr("ac-go");
+        if(is.str(val) && is.func(window[val])) opts.go = window[val];
+        
+        val = t.attr("ac-encodesearchurl");
+        if(is.str(val) && is.func(window[val])) opts.encodeSearchUrl = window[val];
+
+        val = t.attr("ac-getdata");
+        if(is.str(val) && is.func(window[val])) opts.getData = window[val];
+        
+        val = t.attr("ac-getinserttext");
+        if (is.str(val) && is.func(window[val])) opts.getInsertText = window[val];
+        
+        val = t.attr("ac-multiselecttemplate");
+        if (is.str(val)) { getTemplate("multiSelectTemplate"); }
+
+        val = t.attr("ac-buttontemplate");
+        if (is.str(val)) { getTemplate("buttonTemplate"); }
+
+        val = t.attr("ac-selectedtemplate");
+        if (is.str(val)) { getTemplate("selectedTemplate"); }
+
+        val = t.attr("ac-helptemplate");
+        if (is.str(val)) { getTemplate("helpTemplate"); }
+
+        val = t.attr("ac-boxtemplate");
+        if (is.str(val)) { getTemplate("boxTemplate"); }
+
+        val = t.attr("ac-loadtemplate");
+        if (is.str(val)) { getTemplate("loadTemplate"); }
+
+        val = t.attr("ac-listtemplate");
+        if (is.str(val)) { getTemplate("listTemplate"); }
+
+        val = t.attr("ac-listitemtemplate");
+        if (is.str(val)) { getTemplate("listItemTemplate"); }
+
+        val = t.attr("ac-altlistitemtemplate");
+        if (is.str(val)) { getTemplate("altListItemTemplate"); }
+
+        val = t.attr("ac-noresultstemplate");
+        if (is.str(val)) { getTemplate("noResultsTemplate"); }
+
+        if (cancelInit !== true) {
+            return $(t).gooAutoComplete(opts);
+        }
+
+        return opts;
+
+        function getTemplate(name) {
+            var el = $(document.getElementById(val));
+            if (el.length > 0) {
+                opts[name] = el.html();
+            }
+        }
+
+    };
+
+    window.checkType = {
+        nbr: function (obj) {
+            return typeof (obj) == "number" || $.isNumeric(obj);
+        },
+        bool: function (obj) {
+            return typeof (obj) == "boolean" || (window.checkType.str(obj) ? (/true/i.test(obj) || /false/i.test(obj)) : false);
+        },
+        str: function (obj) {
+            return typeof (obj) == "string";
+        },
+        func: function (obj) {
+            return typeof (obj) == "function";
+        },
+        obj: function (obj) {
+            return typeof (obj) == "object";
+        },
+        arr: function (obj) {
+            return typeof(obj) == "array"
+        },
+        date: function (obj) {
+            return typeof (obj) == "date";
+        }
+    };
+    
     $.fn.gooAutoComplete.defaults = {
         maxItems: 10,
         exitOnClick: true,
@@ -487,7 +665,7 @@
                     "</ul></div>",
         boxTemplate: "<ul class='ac body'><li class='ac-row row'></li></ul>",
         loadTemplate: "<div class='ac-load'><span>Loading...</span></div>",
-        listTemplate: "<ul class='ac-list page-width large-6 small-12 columns'><li class='ac-list-head'><h2>{Title}</h2></li></ul>",
+        listTemplate: "<ul class='ac-list'><li class='ac-list-head'><h2>{Title}</h2></li></ul>",
         listItemTemplate: "<li class='ac-item'><a href='/{slug}' title='{title}'>{highlight:title}</a></li>",
         altListItemTemplate: "<li class='ac-item ac-item-alt'><a href='/{slug}' title='{title}'>{highlight:title}</a></li>",
         noResultsTemplate: "<li class='ac-no-results'><span>No results</span></li>",
@@ -525,5 +703,26 @@
 
     };
 
+    // jQuery directive for declarative auto complete creation.
+    $(function () {
+
+        $.each($("[goo-ac]"), function (idx, acInput) {
+
+            var defaultText = $(acInput).attr("goo-ac"),
+                defaultOpts = defaultText ? tryParse(defaultText) : null;
+
+            gooAutoCompleteInitElement(acInput, defaultOpts);
+
+        });
+
+        function tryParse(obj) {
+            var ret = null;
+            try {
+                ret = JSON.parse(obj);
+            } finally { }
+            return ret;
+        }
+
+    });
 
 })(jQuery, document, window);

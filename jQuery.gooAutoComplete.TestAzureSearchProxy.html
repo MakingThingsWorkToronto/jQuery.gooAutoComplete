@@ -1,0 +1,215 @@
+<html>
+<head>
+    <title>Test jQuery.gooAutoComplete.js</title>
+    <link rel="stylesheet" type="text/css" href="jQuery.gooAutoComplete.TestAzureSearchProxy.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="jQuery.acAzureSearchProxy.js"></script>
+    <script src="jQuery.gooAutoComplete.js"></script>
+    <style type="text/css">
+        .test-box {
+            margin-bottom: 2rem;
+            border-bottom: 1px dotted #ddd;
+            padding: 2rem;
+        }
+    </style>
+    <script>
+        $(function () {
+            var addScript = "<link rel='stylesheet' type='text/css' href='{0}' />\n".replace("{0}", $("link").attr("href")) +
+                "<script src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js'><" + "/script>\n" +
+                "<script src='jQuery.acAzureSearchProxy.js'><" + "/script>\n"; +
+                "<script src='jQuery.gooAutoComplete.js'><" + "/script>\n";
+
+            $("input[type='text']").each(function () {
+                var ss = $("<pre />");
+                ss.text(
+                    addScript +
+                    "\n<script type='text/javascript'>" +
+                    $("#" + this.id + "Script").html() +
+                    "\n<" + "/script>"
+                    );
+                $(this).parent().after(ss);
+            });
+        });
+    </script>
+</head>
+<body>
+
+    <div class="test-box">
+
+        <h1>Test Azure Search Proxy</h1>
+        <div class="ac-wrap">
+            <input goo-azure-ac type="text" id="testAzureSearchProxy" placeholder="Azure Search Service..."
+                   ac-listtemplate="search_results_template"
+                   ac-selectedtemplate="selectedTemplate"
+                   ac-listitemtemplate="listItemTemplate"
+                   ac-altlistitemtemplate="altListItemTemplate"
+                   ac-filter="azureAc_filter"
+                   ac-afterrender="azureAc_afterRender"
+                   ac-apikey="C268C94FA246D88615046408593F3118"
+                   ac-host="mtw.search.windows.net"
+                   ac-index="publicsite"
+                   ac-count="true"
+                   ac-top="5"
+                   ac-highlight="title,search_markdown,meta_description,slug,author"
+                   ac-select="title,slug,my_tags"
+                   ac-searchresultstitle=" Search results for {keywords}"
+                   ac-facetstitle="Refine Results By:"
+                   ac-facet="my_tags,sort:count;publish_date,interval:month"
+                   ac-showbutton="false"
+                   ac-position="free" />
+        </div>
+
+        <script type="text/template" id="search_results_template">
+            <ul class='ac-list search-results'><li class='ac-list-head'><h2>{Count}{Title}</h2></li></ul>
+        </script>
+        <script type="text/template" id="my_tags_sub">
+            <span class="article-tag">{.}</span>
+        </script>
+        <script type="text/template" id="selectedTemplate"></script>
+        <script type="text/template" id="listItemTemplate">
+            <li class='ac-item'>
+                <a href='http://makingthings.work/{slug}' title='{title}'>{highlight:title}</a>
+                <a class='link' href='http://makingthings.work/{slug}'>http://makingthings.work/{slug}</a>
+                {highlightHTML}
+                <p class="article-tags">{sub:my_tags_sub,my_tags}</p>
+            </li>
+        </script>
+        <script type="text/template" id="altListItemTemplate">
+            <li class='ac-item ac-item-alt'>
+                <a href='http://makingthings.work/{slug}' title='{title}'>{highlight:title}</a>
+                <a class='link' href='http://makingthings.work/{slug}'>http://makingthings.work/{slug}</a>
+                {highlightHTML}
+                <p class="article-tags">{sub:my_tags_sub,my_tags}</p>
+            </li>
+        </script>
+        <script type="text/template" id="facets">
+            <ul class="ac-facets">
+                <li class="title">
+                    {Title}
+                </li>
+                <li class="my-tags-facet">
+                    <h3>Tags:</h3>
+                    <ul class="my-tags" data-refiner-field="my_tags" data-refiner="tag">
+                        {sub:facet_my_tags,my_tags}
+                    </ul>
+                </li>
+                <li class="pub-date-facet">
+                    <h3>Post Date:</h3>
+                    <ul class="pub-date" data-refiner-field="publish_date" data-refiner="month">
+                        {sub:facet_pub_date,publish_date}
+                    </ul>
+                </li>
+            </ul>
+        </script>
+        <script type="text/template" id="facet_my_tags">
+            <li>
+                <a href="#refine{value}" data-refiner="{value}"><span class="facet-value">{value}</span> <span class="facet-count">({count})</span></a>
+            </li>
+        </script>
+        <script type="text/template" id="facet_pub_date">
+            <li>
+                <a href="#refine{value}" data-refiner="{value}"><span class="facet-value">{value}</span> <span class="facet-count">({count})</span></a>
+            </li>
+        </script>
+        <script type="text/template" id="emptyTemplate"></script>
+        <script type="text/template" id="paging">
+            <ul class="search-paging"></ul>
+        </script>
+        <script type="text/template" id="pagingpage">
+            <li class="page-link">
+                <a href="#" data-start-row="{start}" class="{cssClass}">{text}</a>
+            </li>
+        </script>
+
+        <p>Download <a href="jQuery.gooAutoComplete.TestAzureSearchProxy.css">CSS.</a></p>
+        <script id="testAzureSearchProxyScript" type="text/javascript">
+
+            /* SAMPLE CODE: */
+
+            function azureAc_filter(dataItem, text) {
+                return true; // accept all items
+            }
+
+            function azureAc_afterRender(menu, autoComplete) {
+
+                var parts = autoComplete.searchQuery.split("&"),
+                    filters = [];
+
+                $.each(parts, function (idx, val) {
+                    var p = val.split("=");
+                    if (p[0] == "$filter") {
+                        filters = $.fn.acAzureSearchProxy.refiners.parse(p[1]);
+                    }
+                });
+
+
+                $("[data-refiner-field]")
+                    .on("click", "a[data-refiner]", function (e) {
+
+                        var t = $(this),
+                            val = t.attr("data-refiner"),
+                            odata = t.attr("data-odata-filter"),
+                            field = t.closest("[data-refiner-field]").attr("data-refiner-field"),
+                            selected = t.hasClass("is-selected");
+
+                        if (selected) {
+
+                            // unselect
+                            autoComplete.filters = $.grep(autoComplete.filters, function (filter, idx) {
+                                return (filter.value == val && filter.field == field);
+                            });
+
+                        } else {
+
+                            // select
+                            autoComplete.filters.push({
+                                value: val,
+                                field: field,
+                                odata: odata
+                            });
+
+                        }
+
+                        autoComplete.RefreshData();
+                        e.stopPropagation();
+                        e.preventDefault();
+
+                    })
+                    .each(function () {
+
+                        var t = $(this),
+                            config = {
+                                fieldName: t.attr("data-refiner-field"),
+                                type: t.attr("data-refiner") || "text"
+                            },
+                            processor = $.fn.acAzureSearchProxy.refiners[config.type],
+                            newfilters = $.grep(filters, function (filter, idx) {
+                                return filter.field == config.fieldName;
+                            });
+
+                        autoComplete.filters = newfilters;
+
+                        processor.init(filters, t, autoComplete, config);
+
+                    });
+                
+                $(".search-paging")
+                    .on("click", "[data-start-row]", function (e) {
+
+                        var t = $(this),
+                            row = t.attr("data-start-row");
+
+                        autoComplete.startRow = row;
+                        autoComplete.RefreshData();
+                        e.stopPropagation();
+                        e.preventDefault();
+                        window.scrollTo(0, 0);
+
+                    });
+            }
+
+        </script>
+    </div>
+
+</body>
+</html>

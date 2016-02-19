@@ -1,0 +1,65 @@
+﻿body * { font-family: arial, sans-serif; }
+
+.ac-wrap { border: 1px dotted #ddd; padding: 0; vertical-align: middle; display: block; }
+.ac-wrap input[type='text'] { width: 100%; padding: 0.5rem; margin: 0;  vertical-align: middle; border: none; font-size: 5rem; }
+
+.ac  { position: absolute; top: 14rem; left: 0px; list-style-type: none; display: none; z-index: 2000; width: 100%; padding: 0 2.5rem 0.5rem 2.5rem;  margin: 0 0 0 0; box-sizing: border-box;  }
+
+.ac > .ac-row { background: rgba(255,255,255,0.95); border: 1px dotted #ddd; padding-top: 0.5rem; }
+
+.ac > .ac-row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.ac > li { padding: 0; margin: 0; }
+
+.ac h2 { margin: 0; padding: 0.5rem 0 0.5rem 0; }
+
+.ac-sel { background: #f0f0f0; }
+
+.ac-item { padding: 0.5rem; }
+
+.ac ul.ac-list { list-style: none; margin: 0; padding: 0;  width: 75%; float: right;  border-right: 1px dotted #ddd; box-sizing: border-box; margin-right: 2%; }
+
+.ac ul.ac-list > li { margin: 0; padding: 0.5rem;}
+
+ul.ac > li.ac-no-results { margin: 0 auto; max-width: 90rem; width: 100%; font-size: 1.25rem; padding: 0.5rem; }
+
+ul.ac > li.ac-row.row { padding: 0; margin: 0; }
+
+ul.ac ul.ac-list .ac-item { margin-bottom: 1rem; }
+
+ul.ac ul.ac-list .ac-item a { color: rgb(26, 13, 171); font-size: 1.5rem; }
+ul.ac ul.ac-list .ac-item a.link { color: rgb(0, 102, 33); font-size: 1rem; display: block; margin: 0.5rem 0 0.5rem 0; }
+ul.ac ul.ac-list .ac-item sub { font-size:1.5rem; display: block; color: rgb(84, 84, 84); margin-bottom: 0; }
+ul.ac ul.ac-list .ac-item sub em { font-weight: 700; font-style: normal; }
+
+ul.ac ul.ac-list .ac-item p .ac-sel-text,
+ul.ac ul.ac-list .ac-item a .ac-sel-text { font-weight: 700; }
+
+.ac-button { vertical-align: middle; display: inline-block; background: url(search.png) center center no-repeat; height: 24px; width: 24px; cursor: pointer; padding: 0.5rem; }
+
+.ac-button-hover { background: #ccc url(search.png) center center no-repeat; color: #000; }
+
+.ac .ac-load { font-style: italic; margin: 0px 5px 0px 5px; background: #fff url(load.gif) no-repeat 8px; padding: 0.5rem; padding-left: 3rem; font-size: 1.25rem; }
+
+.ac-help { border: 1px dotted #ddd; background: rgba(255,255,255,0.95); line-height: 1.3em; position: absolute; width: 25rem; font-size: 1.25rem; padding-top: 5px; z-index: 2000; margin-top: 5px; }
+
+.ac-help ul { list-style: none; margin: 0px; padding: 5px; }
+
+.ac-help ul li { margin: 0; padding: 0 5px 5px 5px; }
+.article-tags { margin-left: -0.25rem; margin-top: 0.25rem; }
+.article-tag { display: inline-block; padding: 0.25rem; font-size:0.91rem; }
+
+.ac-facets { width: 20%; float: left; list-style: none; margin: 0; padding: 1rem; }
+
+.ac-facets ul { list-style: none; margin: 0; padding: 0; }
+.ac-facets ul li { margin: 0; padding: 0; }
+.ac-facets ul li a { padding: 0.25rem 0.25rem 0.25rem 0rem; display: block; }
+
+.search-paging { clear: both; margin-top: 2rem; margin-bottom: 2rem; list-style: none; width: 75%; float: right; }
+.search-paging .page-link { padding: 0; margin: 0; display: inline-block; }
+.search-paging .page-link a { padding: 0.5rem; }
+.search-paging a.current-page { background: #f0f0f0; text-decoration: none; color: #000; }
